@@ -2,6 +2,8 @@
 
 import ReportsSnapshot from "@/components/reports-snapshot";
 import UsersStat from "@/app/[lang]/(pages)/(home)/components/users-stat";
+import { useCurrentUser } from "@/app/hooks/use-current-user";
+import { currentUser } from "@/lib/userAuth";
 
 
 interface DashboardPageViewProps {
@@ -11,8 +13,10 @@ interface DashboardPageViewProps {
 }
 
 const DashboardPageView = ({trans}: DashboardPageViewProps) => {
+    const user = useCurrentUser();
     return (
         <div className="space-y-6">
+            {JSON.stringify(user)}
             <div className="flex items-center flex-wrap justify-between gap-4">
                 <div className="text-2xl font-medium text-default-800 ">
                     Blogs Dashboard

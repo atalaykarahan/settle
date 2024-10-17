@@ -1,127 +1,81 @@
-import NextAuth, {DefaultSession} from "next-auth";
-import parse, {splitCookiesString} from "set-cookie-parser";
+import NextAuth, { DefaultSession } from "next-auth";
+import parse, { splitCookiesString } from "set-cookie-parser";
 
 import Credentials from "next-auth/providers/credentials";
-import {cookies} from "next/dist/client/components/headers";
-import {authService} from "@/app/api/services/auth.Service";
+import { cookies } from "next/dist/client/components/headers";
+import { authService } from "@/app/api/services/auth.Service";
 
 /** bu metodun amaci user.role kismi boyle bir alan yok
  * hatasi veriyor bunun onune gecmek icin yazildi */
 //#region EXTENDED USER
 export type ExtendedUser = DefaultSession["user"] & {
-    role: any;
+  role: any;
 };
 declare module "next-auth" {
-    interface Session {
-        user: ExtendedUser;
-    }
+  interface Session {
+    user: ExtendedUser;
+  }
+
+  interface User {
+    role?: string;
+  }
 }
 //#endregion
 
-export const {auth, handlers, signIn, signOut} = NextAuth({
-    callbacks: {
-        async session({token, session}) {
-            /** eger kullanici giris yapmis ise token icinde sub olusur
-             * ve session icindede user objesi olusur */
-            console.log('session kısmına düştü;', token, session);
+export const { auth, handlers, signIn, signOut } = NextAuth({
+  callbacks: {
+    async session({ token, session }) {
+      if (token.sub && session.user) {
+        //front-end tarafinda session icinde user_id degerine erismek icin
+        session.user.id = token.sub;
+      }
 
-            if (token.accessToken) {
-                session.accessToken = token.accessToken;
-                session.refreshToken = token.refreshToken;
-            }
-
-            return session;
-
-            //
-            // if (token.sub && session.user) {
-            //     //front-end tarafinda session icinde user_id degerine erismek icin
-            //     session.user.id = token.sub;
-            // }
-            //
-            // //token icinden gelen role yetkisini session'a iletiyoruz
-            // if (token.role && session.user) {
-            //     session.user.role = token.role;
-            // }
-            // return session;
-        },
-        async jwt({token, account}) {
-            /** burda yazan yetkilendirme kodu kullanici her bir sayfa
-             * degistirdiginde tetikleniyor surekli olarak guncel yetkisini cekiyor yani
-             */
-            console.log('jwt kısmı tetiklendi; ', token, account);
-
-            if (account?.provider === 'steam') {
-                token.accessToken = account.access_token;
-                token.refreshToken = account.refresh_token;
-            }
-
-            return token;
-
-            //bu kisimda userin session icinde gozuken role yetkisini ekliyoruz
-            // if (!token.sub) return token;
-            //
-            // const userAuthenticated = await authService.getLoggedInUserServer();
-            // if (userAuthenticated.status === 401) {
-            //     await signOut();
-            // }
-            // return token;
-        },
+      //token icinden gelen role yetkisini session'a iletiyoruz
+      if (token.role && session.user) {
+        session.user.role = token.role;
+      }
+      return session;
     },
-    session: {strategy: "jwt"},
-    providers: [
-        Credentials({
-            name: "credentials",
-            credentials: {
-                email: {label: "Email", type: "email"},
-                password: {label: "Password", type: "password"},
-            },
-            async authorize(credentials) {
-                const {email, password} = credentials as {
-                    email: string,
-                    password: string,
-                };
+    async jwt({ token, account, user }) {
+      /** burda yazan yetkilendirme kodu kullanici her bir sayfa
+       * degistirdiginde tetikleniyor surekli olarak guncel yetkisini cekiyor yani
+       */
 
-                try {
-                    // API'ye giriş isteği yap
-                    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/login`, {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                        credentials: "include",
-                        body: JSON.stringify({email, password}),
-                    });
+      //bu kisimda userin session icinde gozuken role yetkisini ekliyoruz
+      if (!token.sub) return token;
 
-                    // Yanıt durumunu kontrol et
-                    if (!response.ok) {
-                        console.error('auth credentials failed response', response);
-                        return null;
-                    }
+      if (user && user.role !== undefined) {
+        console.log("user kısmında role gözüküyor; ", user.role);
+        token.role = user.role;
+      }
 
-                    // Çerezleri ayarla
-                    const responseCookies: any = response.headers.get('set-cookie');
-                    if (responseCookies) {
-                        const splittedCookie = splitCookiesString(responseCookies);
-                        const cookieObj = parse(splittedCookie);
-                        cookies().set({
-                            name: cookieObj[0].name,
-                            value: cookieObj[0].value,
-                            domain: cookieObj[0].domain,
-                            expires: cookieObj[0].expires,
-                            httpOnly: cookieObj[0].httpOnly,
-                            path: cookieObj[0].path,
-                        });
-                    }
-                    // Kullanıcı bilgilerini döndür
-                    const user = await response.json();
-                    return {id: user.user_id, name: user.user_name, email: user.user_email};
+      //   const userAuthenticated = await authService.getLoggedInUserServer();
+      //   if (userAuthenticated.status === 401) {
+      //       await signOut();
+      //   }
+      return token;
+    },
+  },
+  session: { strategy: "jwt" },
+  providers: [
+    Credentials({
+      name: "credentials",
+      async authorize(credentials) {
+        const { id, name, image, role } = credentials as {
+          id: string;
+          name: string;
+          image: string;
+          role: string;
+        };
 
-                } catch (error) {
-                    return null;
-                }
-            },
-        }),
-    ],
+        try {
+          return { id, name, image, role };
+        } catch (error) {
+          return null;
+        }
+      },
+    }),
+  ],
 });
 
 /** auth.js yapisindan dolayi user giris yapmis olsa bile session etrafinda user role bilgisi icin
