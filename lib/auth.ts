@@ -23,30 +23,48 @@ export const {auth, handlers, signIn, signOut} = NextAuth({
         async session({token, session}) {
             /** eger kullanici giris yapmis ise token icinde sub olusur
              * ve session icindede user objesi olusur */
-            if (token.sub && session.user) {
-                //front-end tarafinda session icinde user_id degerine erismek icin
-                session.user.id = token.sub;
+            console.log('session kısmına düştü;', token, session);
+
+            if (token.accessToken) {
+                session.accessToken = token.accessToken;
+                session.refreshToken = token.refreshToken;
             }
 
-            //token icinden gelen role yetkisini session'a iletiyoruz
-            if (token.role && session.user) {
-                session.user.role = token.role;
-            }
             return session;
+
+            //
+            // if (token.sub && session.user) {
+            //     //front-end tarafinda session icinde user_id degerine erismek icin
+            //     session.user.id = token.sub;
+            // }
+            //
+            // //token icinden gelen role yetkisini session'a iletiyoruz
+            // if (token.role && session.user) {
+            //     session.user.role = token.role;
+            // }
+            // return session;
         },
-        async jwt({token}) {
+        async jwt({token, account}) {
             /** burda yazan yetkilendirme kodu kullanici her bir sayfa
              * degistirdiginde tetikleniyor surekli olarak guncel yetkisini cekiyor yani
              */
+            console.log('jwt kısmı tetiklendi; ', token, account);
+
+            if (account?.provider === 'steam') {
+                token.accessToken = account.access_token;
+                token.refreshToken = account.refresh_token;
+            }
+
+            return token;
 
             //bu kisimda userin session icinde gozuken role yetkisini ekliyoruz
-            if (!token.sub) return token;
-
-            const userAuthenticated = await authService.getLoggedInUserServer();
-            if (userAuthenticated.status === 401) {
-                await signOut();
-            }
-            return token;
+            // if (!token.sub) return token;
+            //
+            // const userAuthenticated = await authService.getLoggedInUserServer();
+            // if (userAuthenticated.status === 401) {
+            //     await signOut();
+            // }
+            // return token;
         },
     },
     session: {strategy: "jwt"},

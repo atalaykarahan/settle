@@ -17,7 +17,7 @@ const UsersDataChart = ({ height = 160 }) => {
     },
   ];
 
-  const options:any = {
+  const options: any = {
     chart: {
       toolbar: {
         show: false,
@@ -37,7 +37,7 @@ const UsersDataChart = ({ height = 160 }) => {
       theme: mode === "dark" ? "dark" : "light",
     },
     grid: getGridConfig(
-      `hsl(${theme?.cssVars[mode === "dark" ? "dark" : "light"].chartGird})`
+      `hsl(${theme?.cssVars[mode === "dark" ? "dark" : "light"].chartGird})`,
     ),
     yaxis: {
       show: false,
@@ -71,13 +71,13 @@ const UsersDataChart = ({ height = 160 }) => {
     },
   };
   return (
-      <Chart
-        options={options}
-        series={series}
-        type="bar"
-        height={height}
-        width={"100%"}
-      />
+    <Chart
+      options={options}
+      series={series}
+      type="bar"
+      height={height}
+      width={"100%"}
+    />
   );
 };
 

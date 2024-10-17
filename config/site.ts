@@ -1,6 +1,3 @@
-
-
-
 export const siteConfig = {
   name: "Atalay Karahan Admin Template",
   description: null,
