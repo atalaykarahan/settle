@@ -37,11 +37,15 @@ import { useMediaQuery } from "@/hooks/use-media-query";
 import { cn } from "@/lib/utils";
 import { type Contact as ContactType } from "@/app/api/chat/data";
 import { useCurrentUser } from "@/app/hooks/use-current-user";
+import { roomService } from "@/app/api/services/room.Service";
+import { RoomModel } from "@/models/room";
 const ChatPage = () => {
   const profileData = useCurrentUser();
 
-
-  const [selectedChatId, setSelectedChatId] = useState<any | null>(null);
+  // const [selectedChatId, setSelectedChatId] = useState<any | null>(null);
+  const [selectedChatId, setSelectedChatId] = useState<any | null>(
+    "000000000000000000000001"
+  );
   const [showContactSidebar, setShowContactSidebar] = useState<boolean>(false);
 
   const [showInfo, setShowInfo] = useState<boolean>(false);
@@ -62,16 +66,28 @@ const ChatPage = () => {
   // Forward State
   const [isForward, setIsForward] = useState<boolean>(false);
 
+  // const {
+  //   isLoading,
+  //   isError,
+  //   data: contacts,
+  //   error,
+  //   refetch: refetchContact,
+  // } = useQuery({
+  //   queryKey: ["contacts"],
+  //   queryFn: () => getContacts(),
+  // });
+
   const {
     isLoading,
     isError,
-    data: contacts,
+    data: rooms,
     error,
     refetch: refetchContact,
   } = useQuery({
-    queryKey: ["contacts"],
-    queryFn: () => getContacts(),
+    queryKey: ["rooms"],
+    queryFn: () => roomService.getAll(),
   });
+
   const {
     isLoading: messageLoading,
     isError: messageIsError,
@@ -161,7 +177,7 @@ const ChatPage = () => {
         behavior: "smooth",
       });
     }
-  }, [handleSendMessage, contacts]);
+  }, [handleSendMessage, rooms]);
   useEffect(() => {
     if (chatHeightRef.current) {
       chatHeightRef.current.scrollTo({
@@ -252,10 +268,10 @@ const ChatPage = () => {
               {isLoading ? (
                 <Loader />
               ) : (
-                contacts?.contacts?.map((contact: ContactType) => (
+                rooms?.data?.map((room: RoomModel) => (
                   <ContactList
-                    key={contact.id}
-                    contact={contact}
+                    key={room.ID}
+                    room={room}
                     selectedChatId={selectedChatId}
                     openChat={openChat}
                   />
@@ -267,7 +283,7 @@ const ChatPage = () => {
       </div>
       {/* chat sidebar  end*/}
       {/* chat messages start */}
-      {selectedChatId ? (
+      {/* {selectedChatId ? (
         <div className="flex-1 ">
           <div className=" flex space-x-5 h-full rtl:space-x-reverse">
             <div className="flex-1">
@@ -288,7 +304,7 @@ const ChatPage = () => {
                   />
                 )}
 
-                {/* <CardContent className=" !p-0 relative flex-1 overflow-y-auto">
+                <CardContent className=" !p-0 relative flex-1 overflow-y-auto">
                   <div
                     className="h-full py-4 overflow-y-auto no-scrollbar"
                     ref={chatHeightRef}
@@ -324,7 +340,7 @@ const ChatPage = () => {
                       handleUnpinMessage={handleUnpinMessage}
                     />
                   </div>
-                </CardContent> */}
+                </CardContent>
                 <CardFooter className="flex-none flex-col px-0 py-4 border-t border-border">
                   <MessageFooter
                     handleSendMessage={handleSendMessage}
@@ -349,12 +365,12 @@ const ChatPage = () => {
         </div>
       ) : (
         <Blank mblChatHandler={() => setShowContactSidebar(true)} />
-      )}
-      <ForwardMessage
+      )} */}
+      {/* <ForwardMessage
         open={isForward}
         setIsOpen={setIsForward}
         contacts={contacts}
-      />
+      /> */}
     </div>
   );
 };

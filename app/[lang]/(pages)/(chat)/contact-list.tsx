@@ -1,35 +1,42 @@
 "use client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import logo  from "@/public/images/logo/logo-1.png";
 import { Badge } from "@/components/ui/badge";
 import { cn, formatTime } from "@/lib/utils";
 import { Icon } from "@iconify/react";
-import { type Contact as ContactType, type Chat as ChatType } from "@/app/api/chat/data";
+// import { type Contact as ContactType, type Chat as ChatType } from "@/app/api/chat/data";
+import { type Chat as ChatType } from "@/app/api/chat/data";
+import { RoomModel } from "@/models/room";
 
-const ContactList = ({ contact, openChat, selectedChatId }: {
-  contact: ContactType,
-  openChat: (id: any) => void,
-  selectedChatId: string
+const ContactList = ({
+  room,
+  openChat,
+  selectedChatId,
+}: {
+  room: RoomModel;
+  openChat: (id: any) => void;
+  selectedChatId: string;
 }) => {
-  const { avatar, id, fullName, status, about, unreadmessage, date } =
-    contact;
+  const { ID, LastMessage, UpdatedAt } = room;
 
   return (
     <div
       className={cn(
         " gap-4 py-2 lg:py-2.5 px-3 border-l-2 border-transparent   hover:bg-default-200 cursor-pointer flex ",
         {
-          "lg:border-primary/70 lg:bg-default-200 ": id === selectedChatId as any,
+          "lg:border-primary/70 lg:bg-default-200 ":
+            ID === (selectedChatId as any),
         }
       )}
-      onClick={() => openChat(id)}
+      onClick={() => openChat(ID)}
     >
       <div className="flex-1 flex  gap-3 ">
         <div className="relative inline-block ">
           <Avatar>
-            <AvatarImage src={avatar.src} />
-            <AvatarFallback className="uppercase">
+            <AvatarImage src={logo.src} />
+            {/* <AvatarFallback className="uppercase">
               {fullName.slice(0, 2)}
-            </AvatarFallback>
+            </AvatarFallback> */}
           </Avatar>
           <Badge
             className=" h-2 w-2  p-0 ring-1 ring-border ring-offset-[1px]   items-center justify-center absolute
@@ -41,21 +48,26 @@ const ContactList = ({ contact, openChat, selectedChatId }: {
           <div className="truncate max-w-[120px]">
             <span className="text-sm text-default-900 font-medium">
               {" "}
-              {fullName}
+              Genel Chat
             </span>
           </div>
           <div className="truncate  max-w-[120px]">
             <span className=" text-xs  text-default-600 ">
-              {about}
+              {LastMessage.Content}
             </span>
           </div>
         </div>
       </div>
       <div className="flex-none  flex-col items-end  gap-2 hidden lg:flex">
         <span className="text-xs text-default-600 text-end uppercase">
-          {date}
+          {new Date(UpdatedAt).toLocaleTimeString("tr-TR", {
+            timeZone: "Europe/Istanbul",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+          })}
         </span>
-        <span
+        {/* <span
           className={cn(
             "h-[14px] w-[14px] flex items-center justify-center bg-default-400 rounded-full text-primary-foreground text-[10px] font-medium",
             {
@@ -68,7 +80,7 @@ const ContactList = ({ contact, openChat, selectedChatId }: {
           ) : (
             unreadmessage
           )}
-        </span>
+        </span> */}
       </div>
     </div>
   );

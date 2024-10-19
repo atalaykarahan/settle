@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Undo2 } from "lucide-react";
-import { type ProfileUser as ProfileUser, type Contact as ContactType, type Chat as ChatType } from "@/app/api/chat/data";
+import { type ProfileUser as ProfileUser, type Room as RoomType, type Chat as ChatType } from "@/app/api/chat/data";
 import Image from "next/image";
 const chatAction = [
   {
@@ -25,12 +25,12 @@ const chatAction = [
 
 interface MessagesProps {
   message: any;
-  contact: ContactType;
+  room: RoomType;
   profile: ProfileUser;
   onDelete: (selectedChatId: any, index: number) => void;
   index: number;
   selectedChatId: string;
-  handleReply: (data: any, contact: ContactType) => void;
+  handleReply: (data: any, room: RoomType) => void;
   replayData: any;
   handleForward: (data: any) => void;
   handlePinMessage: (data: any) => void;
@@ -39,7 +39,7 @@ interface MessagesProps {
 }
 const Messages = ({
   message,
-  contact,
+  room,
   profile,
   onDelete,
   index,
@@ -52,7 +52,7 @@ const Messages = ({
   pinnedMessages,
 }: MessagesProps) => {
   const { senderId, message: chatMessage, time, replayMetadata } = message;
-  const { avatar } = contact;
+  // const { avatar } = room;
   // State to manage pin status
   const isMessagePinned = pinnedMessages.some(
     (pinnedMessage: any) => pinnedMessage.index === index
@@ -61,7 +61,7 @@ const Messages = ({
   const handlePinMessageLocal = (note: any) => {
     const obj = {
       note,
-      avatar,
+      // avatar,
       index,
     };
     handlePinMessage(obj);
@@ -129,7 +129,7 @@ const Messages = ({
               <div className="flex-none self-end -translate-y-5">
                 <div className="h-8 w-8 rounded-full ">
                   <Image
-                    src={profile?.avatar}
+                    src={profile?.image}
                     alt=""
                     className="block w-full h-full object-cover rounded-full"
                   />
@@ -141,11 +141,11 @@ const Messages = ({
           <div className="flex space-x-2 items-start group rtl:space-x-reverse mb-4">
             <div className="flex-none self-end -translate-y-5">
               <div className="h-8 w-8 rounded-full">
-                <Image
+                {/* <Image
                   src={avatar}
                   alt=""
                   className="block w-full h-full object-cover rounded-full"
-                />
+                /> */}
               </div>
             </div>
             <div className="flex-1 flex flex-col gap-2">
@@ -184,7 +184,7 @@ const Messages = ({
                           Remove
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          onClick={() => handleReply(chatMessage, contact)}
+                          onClick={() => handleReply(chatMessage, room)}
                         >
                           Reply
                         </DropdownMenuItem>

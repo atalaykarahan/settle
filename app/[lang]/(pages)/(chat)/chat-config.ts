@@ -1,10 +1,10 @@
 // import { axios } from "@/config/axios.config";
 import axios from "@/app/api/axios"
 
-export const getContacts = async () => {
-  const response = await axios.get("/chat");
-  return response.data;
-};
+// export const getContacts = async () => {
+//   const response = await axios.get("/chat");
+//   return response.data;
+// };
 
 export const getMessages = async (id: any) => {
   try {
