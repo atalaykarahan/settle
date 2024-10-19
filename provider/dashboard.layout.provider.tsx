@@ -122,8 +122,8 @@ const DashBoardLayoutProvider = ({children, trans}: { children: React.ReactNode,
     }
     return (
         <>
-            <Header handleOpenSearch={() => setOpen(true)} trans={trans}/>
-            <Sidebar trans={trans}/>
+            {/* <Header handleOpenSearch={() => setOpen(true)} trans={trans}/> */}
+            {/* <Sidebar trans={trans}/> */}
 
             <div
                 className={cn("content-wrapper transition-all duration-150 ", {
@@ -192,8 +192,8 @@ const LayoutWrapper = ({children, isMobile, setOpen, open, location, trans}: {
                 <main>{children}</main>
             </motion.div>
 
-            <MobileSidebar trans={trans} className="left-[300px]"/>
-            <HeaderSearch open={open} setOpen={setOpen}/>
+            {/* <MobileSidebar trans={trans} className="left-[300px]"/> */}
+            {/* <HeaderSearch open={open} setOpen={setOpen}/> */}
         </>
     );
 };
