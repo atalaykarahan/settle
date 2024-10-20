@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Menu } from "lucide-react";
 import { useMediaQuery } from "@/hooks/use-media-query";
+import logo from "@/public/images/logo/logo-1.png";
 
 const MessageHeader = ({
   showInfo,
@@ -39,7 +40,7 @@ const MessageHeader = ({
         )}
         <div className="relative inline-block">
           <Avatar>
-            <AvatarImage src={profile?.avatar?.src} alt="" />
+            <AvatarImage src={logo.src} alt="" />
             <AvatarFallback>{profile?.fullName?.slice(0, 2)}</AvatarFallback>
           </Avatar>
           <Badge
@@ -49,7 +50,7 @@ const MessageHeader = ({
         </div>
         <div className="hidden lg:block">
           <div className="text-sm font-medium text-default-900 ">
-            <span className="relative">{profile?.fullName}</span>
+            <span className="relative">Genel Chat</span>
           </div>
           <span className="text-xs text-default-500">
             {active ? "Active Now" : "Offline"}
@@ -57,7 +58,8 @@ const MessageHeader = ({
         </div>
       </div>
       <div className="flex-none space-x-2 rtl:space-x-reverse">
-        <TooltipProvider>
+        {/* PHONE CALL */}
+        {/* <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -75,9 +77,10 @@ const MessageHeader = ({
               <TooltipArrow className="fill-primary" />
             </TooltipContent>
           </Tooltip>
-        </TooltipProvider>
+        </TooltipProvider> */}
 
-        <TooltipProvider>
+        {/* VIDEO CALL */}
+        {/* <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -95,9 +98,10 @@ const MessageHeader = ({
               <TooltipArrow className="fill-primary" />
             </TooltipContent>
           </Tooltip>
-        </TooltipProvider>
+        </TooltipProvider> */}
 
-        <TooltipProvider>
+        {/* INFO */}
+        {/* <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -125,7 +129,7 @@ const MessageHeader = ({
               <TooltipArrow className="fill-primary" />
             </TooltipContent>
           </Tooltip>
-        </TooltipProvider>
+        </TooltipProvider> */}
       </div>
     </div>
   );

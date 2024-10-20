@@ -283,7 +283,7 @@ const ChatPage = () => {
       </div>
       {/* chat sidebar  end*/}
       {/* chat messages start */}
-      {/* {selectedChatId ? (
+      {selectedChatId ? (
         <div className="flex-1 ">
           <div className=" flex space-x-5 h-full rtl:space-x-reverse">
             <div className="flex-1">
@@ -352,7 +352,7 @@ const ChatPage = () => {
               </Card>
             </div>
 
-            {showInfo && (
+            {/* {showInfo && (
               <ContactInfo
                 handleSetIsOpenSearch={handleSetIsOpenSearch}
                 handleShowInfo={handleShowInfo}
@@ -360,12 +360,12 @@ const ChatPage = () => {
                   (contact: ContactType) => contact.id === selectedChatId
                 )}
               />
-            )}
+            )} */}
           </div>
         </div>
       ) : (
         <Blank mblChatHandler={() => setShowContactSidebar(true)} />
-      )} */}
+      )}
       {/* <ForwardMessage
         open={isForward}
         setIsOpen={setIsForward}
