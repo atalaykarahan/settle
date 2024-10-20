@@ -1,7 +1,6 @@
 import { AttachmentModel } from "./attachment";
-import { RepliedMessageModel } from "./repliedMessage";
 
-export interface MessageModel {
+export interface RepliedMessageModel {
   ID: string;
   Content: string;
   SenderID: string;
