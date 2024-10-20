@@ -31,6 +31,7 @@ import MyProfileHeader from "./my-profile-header";
 import PinnedMessages from "./pin-messages";
 const ChatPage = () => {
   const limit = 10;
+  const previousScrollPosition = useRef<number>(0);
   const profileData = useCurrentUser();
   const chatHeightRef = useRef<HTMLDivElement | null>(null);
   const socketUrl = process.env.NEXT_PUBLIC_SOCKET_IO_URL;
@@ -145,7 +146,8 @@ const ChatPage = () => {
       chatHeightRef.current.scrollTop === 0 &&
       hasMoreMessages
     ) {
-      const newOffset = offset + limit; // Her seferinde limit kadar mesaj daha yüklenecek
+      previousScrollPosition.current = chatHeightRef.current.scrollHeight;
+      const newOffset = offset + limit;
       const newMessages = await messageService.getByRoomId(
         selectedChatId,
         limit,
@@ -157,7 +159,7 @@ const ChatPage = () => {
         Array.isArray(newMessages.data.data)
       ) {
         if (newMessages.data.data.length < limit) {
-          setHasMoreMessages(false); // Daha fazla mesaj yoksa yüklemeyi durdurur
+          setHasMoreMessages(false);
         }
         queryClient.setQueryData(
           ["message", selectedChatId],
@@ -169,35 +171,29 @@ const ChatPage = () => {
             ) {
               return {
                 data: {
-                  data: [...newMessages.data.data], // İlk mesajları yükler
+                  data: [...newMessages.data.data],
                 },
               };
             }
-
-            // Eski mesajları yeni gelenlerin önüne ekler
             return {
               ...oldMessages,
               data: {
-                ...oldMessages.data.data,
+                ...oldMessages.data,
                 data: [...newMessages.data.data, ...oldMessages.data.data],
               },
             };
           }
         );
-        setOffset(newOffset); // Offset değerini günceller
+        setOffset(newOffset);
+        setTimeout(() => {
+          if (chatHeightRef.current) {
+            chatHeightRef.current.scrollTop =
+              chatHeightRef.current.scrollHeight - previousScrollPosition.current;
+          }
+        }, 100);
       }
     }
   };
-
-  // replay message
-  // const handleReply = (data: any, contact: ContactType) => {
-  //   const newObj = {
-  //     message: data,
-  //     contact,
-  //   };
-  //   setReply(true);
-  //   // setReplyData(newObj);
-  // };
 
   useEffect(() => {
     const chatContainer = chatHeightRef.current;
