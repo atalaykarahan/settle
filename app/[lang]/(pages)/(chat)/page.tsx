@@ -30,17 +30,23 @@ import Loader from "./loader";
 import MyProfileHeader from "./my-profile-header";
 import PinnedMessages from "./pin-messages";
 const ChatPage = () => {
+  const limit = 10;
   const profileData = useCurrentUser();
+  const chatHeightRef = useRef<HTMLDivElement | null>(null);
   const socketUrl = process.env.NEXT_PUBLIC_SOCKET_IO_URL;
   const queryClient = useQueryClient();
   // Memoize getMessages using useCallback
   const getMessagesCallback = useCallback(
-    (chatId: any) => messageService.getByRoomId(chatId, 25, 0),
+    (chatId: any) => messageService.getByRoomId(chatId, limit, 0),
     []
   );
 
+  const [offset, setOffset] = useState<number>(0);
+  const [hasMoreMessages, setHasMoreMessages] = useState<boolean>(true);
+  const messageEndRef = useRef<HTMLDivElement | null>(null);
   const [connectionStatus, setConnectionStatus] =
     useState<string>("Connecting...");
+
   const [socket, setSocket] = useState<Socket | null>(null);
   const [selectedChatId, setSelectedChatId] = useState<any | null>(
     "000000000000000000000001"
@@ -133,7 +139,55 @@ const ChatPage = () => {
       });
     }
   };
-  const chatHeightRef = useRef<HTMLDivElement | null>(null);
+  const handleScroll = async () => {
+    if (
+      chatHeightRef.current &&
+      chatHeightRef.current.scrollTop === 0 &&
+      hasMoreMessages
+    ) {
+      const newOffset = offset + limit; // Her seferinde limit kadar mesaj daha yüklenecek
+      const newMessages = await messageService.getByRoomId(
+        selectedChatId,
+        limit,
+        newOffset
+      );
+      if (
+        newMessages &&
+        newMessages.data &&
+        Array.isArray(newMessages.data.data)
+      ) {
+        if (newMessages.data.data.length < limit) {
+          setHasMoreMessages(false); // Daha fazla mesaj yoksa yüklemeyi durdurur
+        }
+        queryClient.setQueryData(
+          ["message", selectedChatId],
+          (oldMessages: any) => {
+            if (
+              !oldMessages ||
+              !oldMessages.data ||
+              !Array.isArray(oldMessages.data.data)
+            ) {
+              return {
+                data: {
+                  data: [...newMessages.data.data], // İlk mesajları yükler
+                },
+              };
+            }
+
+            // Eski mesajları yeni gelenlerin önüne ekler
+            return {
+              ...oldMessages,
+              data: {
+                ...oldMessages.data.data,
+                data: [...newMessages.data.data, ...oldMessages.data.data],
+              },
+            };
+          }
+        );
+        setOffset(newOffset); // Offset değerini günceller
+      }
+    }
+  };
 
   // replay message
   // const handleReply = (data: any, contact: ContactType) => {
@@ -144,6 +198,20 @@ const ChatPage = () => {
   //   setReply(true);
   //   // setReplyData(newObj);
   // };
+
+  useEffect(() => {
+    const chatContainer = chatHeightRef.current;
+
+    if (chatContainer) {
+      chatContainer.addEventListener("scroll", handleScroll);
+    }
+
+    return () => {
+      if (chatContainer) {
+        chatContainer.removeEventListener("scroll", handleScroll);
+      }
+    };
+  }, [offset, hasMoreMessages, selectedChatId]);
 
   useEffect(() => {
     if (chatHeightRef.current) {
@@ -211,8 +279,8 @@ const ChatPage = () => {
       newSocket.off("receive_message");
     };
   }, []);
-  // handle search bar
 
+  // handle search bar
   const handleSetIsOpenSearch = () => {
     setIsOpenSearch(!isOpenSearch);
   };
