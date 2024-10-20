@@ -86,7 +86,7 @@ const LogInForm = () => {
       <div className="w-full py-5 lg:py-10">
         <CircularProgress
           className="mx-auto"
-          value="50"
+          value={50}
           color="primary"
           loading
         />

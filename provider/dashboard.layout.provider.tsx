@@ -127,7 +127,7 @@ const DashBoardLayoutProvider = ({children, trans}: { children: React.ReactNode,
 
             <div
                 className={cn("content-wrapper transition-all duration-150 ", {
-                    "ltr:xl:ml-[300px] rtl:xl:mr-[300px]": !collapsed,
+                    "": !collapsed,
                     "ltr:xl:ml-[72px] rtl:xl:mr-[72px]": collapsed,
                 })}
             >

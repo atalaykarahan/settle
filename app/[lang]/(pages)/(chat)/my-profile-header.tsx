@@ -59,9 +59,6 @@ const MyProfileHeader = ({ profile }: { profile: ProfileUserType }) => {
               <DropdownMenuItem className="focus:bg-primary/10 focus:text-primary">
                 Settings
               </DropdownMenuItem>
-              <DropdownMenuItem className="focus:bg-primary/10 focus:text-primary">
-                Tema
-              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

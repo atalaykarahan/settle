@@ -5,24 +5,23 @@ import {
   CardFooter,
   CardHeader,
 } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useCallback, useEffect, useRef } from "react";
 import io, { Socket } from "socket.io-client";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 import { useState } from "react";
 import Blank from "./blank";
-import { deleteMessage, getProfile, sendMessage } from "./chat-config";
+import { deleteMessage } from "./chat-config";
 import ContactList from "./contact-list";
 import MessageFooter from "./message-footer";
 import MessageHeader from "./message-header";
 import Messages from "./messages";
 
-import { type Contact as ContactType } from "@/app/api/chat/data";
 import { messageService } from "@/app/api/services/message.Service";
 import { roomService } from "@/app/api/services/room.Service";
 import { useCurrentUser } from "@/app/hooks/use-current-user";
 import { useMediaQuery } from "@/hooks/use-media-query";
-import { cn } from "@/lib/utils";
+import { cn, decodedAccessUser } from "@/lib/utils";
 import { RoomModel } from "@/models/room";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import SearchMessages from "./contact-info/search-messages";
@@ -30,14 +29,13 @@ import EmptyMessage from "./empty-message";
 import Loader from "./loader";
 import MyProfileHeader from "./my-profile-header";
 import PinnedMessages from "./pin-messages";
-import { UserModel } from "@/models/user";
 const ChatPage = () => {
   const profileData = useCurrentUser();
   const socketUrl = process.env.NEXT_PUBLIC_SOCKET_IO_URL;
   const queryClient = useQueryClient();
   // Memoize getMessages using useCallback
   const getMessagesCallback = useCallback(
-    (chatId: any) => messageService.getByRoomId(chatId, 35, 0),
+    (chatId: any) => messageService.getByRoomId(chatId, 25, 0),
     []
   );
 
@@ -54,8 +52,6 @@ const ChatPage = () => {
   const [pinnedMessages, setPinnedMessages] = useState<any[]>([]);
   // Forward State
   const [isForward, setIsForward] = useState<boolean>(false);
-
-  // const [selectedChatId, setSelectedChatId] = useState<any | null>(null);
 
   // reply state
   // const [replay, setReply] = useState<boolean>(false);
@@ -95,13 +91,6 @@ const ChatPage = () => {
   //   queryKey: ["profile"],
   //   queryFn: () => getProfile(),
   // });
-  // const messageMutation = useMutation({
-  //   mutationFn: sendMessage,
-  //   onSuccess: () => {
-  //     queryClient.invalidateQueries({ queryKey: ["messages"] });
-  //   },
-  // });
-
   const deleteMutation = useMutation({
     mutationFn: deleteMessage,
     onSuccess: () => {
@@ -134,30 +123,15 @@ const ChatPage = () => {
   const handleSendMessage = (message: any) => {
     if (!selectedChatId || !message) return;
 
-    console.log("şu adna bu mesaj gidicek", message);
-
     if (socket && profileData && profileData.id) {
-
-      
-
-      // const user: UserModel = {
-      //   ID: 
-      // }
-
+      const user = decodedAccessUser();
+      if (!user) return;
       socket.emit("sendMessage", {
         RoomID: selectedChatId,
         Content: message,
-        Sender: profileData.id,
+        Sender: user,
       });
     }
-
-    // const newMessage = {
-    //   message: message,
-    //   contact: { id: selectedChatId },
-    //   // replayMetadata: isObjectNotEmpty(replayData),
-    // };
-    // messageMutation.mutate(newMessage);
-    // console.log(message, "ami msg");
   };
   const chatHeightRef = useRef<HTMLDivElement | null>(null);
 
@@ -204,40 +178,39 @@ const ChatPage = () => {
       setConnectionStatus(`Bağlantı Hatası: ${error.message}`);
     });
 
-    newSocket.on('message', (newMessage: any) => {
-      console.log("gelen response;", newMessage);
-
-
-      queryClient.setQueryData(["message", selectedChatId], (oldMessages: any) => {
-        // Eğer oldMessages null veya tanımsız ise yeni bir array döndür
-        if (!oldMessages || !oldMessages.data || !Array.isArray(oldMessages.data.data)) {
+    newSocket.on("message", (newMessage: any) => {
+      queryClient.setQueryData(
+        ["message", selectedChatId],
+        (oldMessages: any) => {
+          // Eğer oldMessages null veya tanımsız ise yeni bir array döndür
+          if (
+            !oldMessages ||
+            !oldMessages.data ||
+            !Array.isArray(oldMessages.data.data)
+          ) {
+            return {
+              data: {
+                data: [newMessage], // Yeni mesajı array içine koy
+              },
+            };
+          }
+          // Yeni mesajı mevcut mesajların sonuna ekle
           return {
+            ...oldMessages, // Eski mesajları koru
             data: {
-              data: [newMessage] // Yeni mesajı array içine koy
-            }
+              ...oldMessages.data,
+              data: [...oldMessages.data.data, newMessage], // Yeni mesajı ekle
+            },
           };
         }
-    
-        // Yeni mesajı mevcut mesajların sonuna ekle
-        return {
-          ...oldMessages, // Eski mesajları koru
-          data: {
-            ...oldMessages.data,
-            data: [...oldMessages.data.data, newMessage] // Yeni mesajı ekle
-          }
-        };
-      });
-      
-
-      // const messagesData:any = queryClient.getQueryData(["message", selectedChatId]);
-      // console.log("Cache'te tutulan mesaj verisi: ", messagesData.data.data);
-      // queryClient.setQueryData(["message", selectedChatId], (oldMessages: any) => {
-      //   return [...oldMessages.data.data, newMessage];
-      // });
+      );
     });
 
     setSocket(newSocket);
-  }, [chats, selectedChatId]);
+    return () => {
+      newSocket.off("receive_message");
+    };
+  }, []);
   // handle search bar
 
   const handleSetIsOpenSearch = () => {

@@ -185,7 +185,6 @@ export const encryptLocalStorageSet = (key: string, value: string): void => {
 export const decodeLocalStorageGet = (key: string): string => {
   const item = localStorage.getItem(key);
   if (!item || !process.env.NEXT_PUBLIC_LOCAL_STORAGE_KEY) return "";
-
   const decryptedItem = CryptoJS.AES.decrypt(
     item,
     process.env.NEXT_PUBLIC_LOCAL_STORAGE_KEY
