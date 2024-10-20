@@ -1,5 +1,6 @@
 import { AttachmentModel } from "./attachment";
 import { RepliedMessageModel } from "./repliedMessage";
+import { UserModel } from "./user";
 
 export interface MessageModel {
   ID: string;
@@ -12,4 +13,5 @@ export interface MessageModel {
   CreatedAt: Date;
   UpdatedAt: Date;
   DeletedAt: Date;
+  User: UserModel;
 }

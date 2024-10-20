@@ -1,9 +1,8 @@
 "use client";
+import ThemeButton from "@/components/partials/header/theme-button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import { Icon } from "@iconify/react";
 import {
   Tooltip,
   TooltipArrow,
@@ -11,9 +10,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Menu } from "lucide-react";
 import { useMediaQuery } from "@/hooks/use-media-query";
+import { cn } from "@/lib/utils";
 import logo from "@/public/images/logo/logo-1.png";
+import { Icon } from "@iconify/react";
+import { Menu } from "lucide-react";
 
 const MessageHeader = ({
   showInfo,
@@ -99,6 +100,18 @@ const MessageHeader = ({
             </TooltipContent>
           </Tooltip>
         </TooltipProvider> */}
+
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <ThemeButton />
+            </TooltipTrigger>
+            <TooltipContent side="bottom" align="end">
+              <p>Conversation information</p>
+              <TooltipArrow className="fill-primary" />
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
 
         {/* INFO */}
         {/* <TooltipProvider>

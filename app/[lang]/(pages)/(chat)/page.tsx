@@ -39,6 +39,7 @@ import { type Contact as ContactType } from "@/app/api/chat/data";
 import { useCurrentUser } from "@/app/hooks/use-current-user";
 import { roomService } from "@/app/api/services/room.Service";
 import { RoomModel } from "@/models/room";
+import { messageService } from "@/app/api/services/message.Service";
 const ChatPage = () => {
   const profileData = useCurrentUser();
 
@@ -52,12 +53,12 @@ const ChatPage = () => {
   const queryClient = useQueryClient();
   // Memoize getMessages using useCallback
   const getMessagesCallback = useCallback(
-    (chatId: any) => getMessages(chatId),
+    (chatId: any) => messageService.getByRoomId(chatId, 100, 0),
     []
   );
   // reply state
   const [replay, setReply] = useState<boolean>(false);
-  const [replayData, setReplyData] = useState<any>({});
+  // const [replayData, setReplyData] = useState<any>({});
 
   // search state
   const [isOpenSearch, setIsOpenSearch] = useState<boolean>(false);
@@ -150,13 +151,13 @@ const ChatPage = () => {
   const handleSendMessage = (message: any) => {
     if (!selectedChatId || !message) return;
 
-    const newMessage = {
-      message: message,
-      contact: { id: selectedChatId },
-      replayMetadata: isObjectNotEmpty(replayData),
-    };
-    messageMutation.mutate(newMessage);
-    console.log(message, "ami msg");
+    // const newMessage = {
+    //   message: message,
+    //   contact: { id: selectedChatId },
+    //   replayMetadata: isObjectNotEmpty(replayData),
+    // };
+    // messageMutation.mutate(newMessage);
+    // console.log(message, "ami msg");
   };
   const chatHeightRef = useRef<HTMLDivElement | null>(null);
 
@@ -167,7 +168,7 @@ const ChatPage = () => {
       contact,
     };
     setReply(true);
-    setReplyData(newObj);
+    // setReplyData(newObj);
   };
 
   useEffect(() => {
@@ -315,8 +316,8 @@ const ChatPage = () => {
                       <>
                         {messageIsError ? (
                           <EmptyMessage />
-                        ) : (
-                          chats?.chat?.chat?.map((message: any, i: number) => (
+                        ) : (                     
+                          chats?.data?.data?.map((message: any, i: number) => (
                             <Messages
                               key={`message-list-${i}`}
                               message={message}
@@ -325,8 +326,8 @@ const ChatPage = () => {
                               onDelete={onDelete}
                               index={i}
                               selectedChatId={selectedChatId}
-                              handleReply={handleReply}
-                              replayData={replayData}
+                              // handleReply={handleReply}
+                              // replayData={replayData}
                               handleForward={handleForward}
                               handlePinMessage={handlePinMessage}
                               pinnedMessages={pinnedMessages}
@@ -344,9 +345,9 @@ const ChatPage = () => {
                 <CardFooter className="flex-none flex-col px-0 py-4 border-t border-border">
                   <MessageFooter
                     handleSendMessage={handleSendMessage}
-                    replay={replay}
-                    setReply={setReply}
-                    replayData={replayData}
+                    // replay={replay}
+                    // setReply={setReply}
+                    // replayData={replayData}
                   />
                 </CardFooter>
               </Card>

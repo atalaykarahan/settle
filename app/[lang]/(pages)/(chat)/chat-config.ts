@@ -6,16 +6,16 @@ import axios from "@/app/api/axios"
 //   return response.data;
 // };
 
-export const getMessages = async (id: any) => {
-  try {
-    const response = await axios.get(`/chat/messages/${id}`);
-    console.log("Response from getMessages:", response.data);
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching messages:", error);
-    throw error;
-  }
-};
+// export const getMessages = async (id: any) => {
+//   try {
+//     const response = await axios.get(`/chat/messages/${id}`);
+//     return response.data;
+//   } catch (error) {
+//     console.error("Error fetching messages:", error);
+//     throw error;
+//   }
+// };
+
 export const deleteMessage = async (obj: any) => {
   console.log("Object to be sent:", obj); // Add this log statement
   try {

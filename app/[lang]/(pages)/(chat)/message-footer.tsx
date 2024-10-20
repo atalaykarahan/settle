@@ -27,11 +27,16 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 
-const MessageFooter = ({ handleSendMessage, replay, setReply, replayData }: {
+const MessageFooter = ({
+  handleSendMessage,
+}: // replay,
+// setReply,
+// replayData,
+{
   handleSendMessage: (message: string) => void;
-  replay: boolean;
-  setReply: React.Dispatch<React.SetStateAction<boolean>>;
-  replayData: any
+  // replay: boolean;
+  // setReply: React.Dispatch<React.SetStateAction<boolean>>;
+  // replayData: any;
 }) => {
   const [message, setMessage] = useState("");
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -47,14 +52,14 @@ const MessageFooter = ({ handleSendMessage, replay, setReply, replayData }: {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     handleSendMessage(message);
-    setReply(false);
+    // setReply(false);
     setMessage("");
 
-    console.log(replay, message, "ami k");
+    // console.log(replay, message, "ami k");
   };
   return (
     <>
-      {replay && (
+      {/* {replay && (
         <div className=" w-full px-6 py-4 flex justify-between gap-4 items-center">
           <div>
             <div className="font-semibold text-base text-default-700 mb-1">
@@ -73,7 +78,7 @@ const MessageFooter = ({ handleSendMessage, replay, setReply, replayData }: {
             />
           </span>
         </div>
-      )}
+      )} */}
 
       <div
         className="w-full flex items-end gap-1 lg:gap-4 lg:px-4 relative px-2 "
@@ -234,7 +239,10 @@ const MessageFooter = ({ handleSendMessage, replay, setReply, replayData }: {
                     <Annoyed className="w-6 h-6 text-primary" />
                   </span>
                 </PopoverTrigger>
-                <PopoverContent side="top" className="w-fit p-0 shadow-none border-none bottom-0 rtl:left-5 ltr:-left-[110px]">
+                <PopoverContent
+                  side="top"
+                  className="w-fit p-0 shadow-none border-none bottom-0 rtl:left-5 ltr:-left-[110px]"
+                >
                   <Picker
                     data={data}
                     onEmojiSelect={handleSelectEmoji}

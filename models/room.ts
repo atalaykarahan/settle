@@ -1,4 +1,4 @@
-import { MessageModel } from "./lastMessage";
+import { MessageModel } from "./message";
 
 export interface RoomModel {
   ID: string;

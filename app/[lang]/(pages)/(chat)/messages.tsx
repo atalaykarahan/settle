@@ -10,8 +10,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Undo2 } from "lucide-react";
-import { type ProfileUser as ProfileUser, type Room as RoomType, type Chat as ChatType } from "@/app/api/chat/data";
+import {
+  type ProfileUser as ProfileUser,
+  type Chat as ChatType,
+} from "@/app/api/chat/data";
 import Image from "next/image";
+import { RoomModel } from "@/models/room";
+import { MessageModel } from "@/models/message";
 const chatAction = [
   {
     label: "Remove",
@@ -24,18 +29,17 @@ const chatAction = [
 ];
 
 interface MessagesProps {
-  message: any;
-  room: RoomType;
+  message: MessageModel;
+  room: RoomModel;
   profile: ProfileUser;
   onDelete: (selectedChatId: any, index: number) => void;
   index: number;
   selectedChatId: string;
-  handleReply: (data: any, room: RoomType) => void;
-  replayData: any;
+  handleReply: (data: any, room: RoomModel) => void;
+  // replayData: any;
   handleForward: (data: any) => void;
   handlePinMessage: (data: any) => void;
   pinnedMessages: ChatType[];
-
 }
 const Messages = ({
   message,
@@ -44,14 +48,19 @@ const Messages = ({
   onDelete,
   index,
   selectedChatId,
-  handleReply,
-  replayData,
+  // handleReply,
+  // replayData,
   handleForward,
-
   handlePinMessage,
   pinnedMessages,
 }: MessagesProps) => {
-  const { senderId, message: chatMessage, time, replayMetadata } = message;
+  const {
+    SenderID: senderId,
+    Content: chatMessage,
+    UpdatedAt: time,
+    RepliedMessage: replayMetadata,
+    User: user,
+  } = message;
   // const { avatar } = room;
   // State to manage pin status
   const isMessagePinned = pinnedMessages.some(
@@ -70,16 +79,16 @@ const Messages = ({
   return (
     <>
       <div className="block md:px-6 px-0 ">
-        {senderId === 11 ? (
+        {senderId === profile.id ? (
           <>
-            {replayMetadata === true && (
+            {/* {replayMetadata !== null && (
               <div className="w-max ml-auto -mb-2 mr-10">
                 <div className="flex items-center gap-1 mb-1">
                   <Undo2 className="w-4 h-4 text-default-600" />{" "}
                   <span className="text-xs text-default-700">
                     You replied to
                     <span className="ml-1 text-default-800">
-                      {replayData?.contact?.fullName}
+                      {replayMetadata?.contact?.fullName}
                     </span>
                   </span>
                 </div>
@@ -87,7 +96,7 @@ const Messages = ({
                   {replayData?.message}
                 </p>
               </div>
-            )}
+            )} */}
             <div className="flex space-x-2 items-start justify-end group w-full rtl:space-x-reverse mb-4">
               <div className=" flex flex-col  gap-1">
                 <div className="flex items-center gap-1">
@@ -108,7 +117,6 @@ const Messages = ({
                       >
                         <DropdownMenuItem
                           onClick={() => onDelete(selectedChatId, index)}
-
                         >
                           Delete
                         </DropdownMenuItem>
@@ -130,6 +138,8 @@ const Messages = ({
                 <div className="h-8 w-8 rounded-full ">
                   <Image
                     src={profile?.image}
+                    width={32}
+                    height={32}
                     alt=""
                     className="block w-full h-full object-cover rounded-full"
                   />
@@ -141,11 +151,13 @@ const Messages = ({
           <div className="flex space-x-2 items-start group rtl:space-x-reverse mb-4">
             <div className="flex-none self-end -translate-y-5">
               <div className="h-8 w-8 rounded-full">
-                {/* <Image
-                  src={avatar}
+                <Image
+                  src={user?.Avatar}
+                  width={32}
+                  height={32}
                   alt=""
                   className="block w-full h-full object-cover rounded-full"
-                /> */}
+                />
               </div>
             </div>
             <div className="flex-1 flex flex-col gap-2">
@@ -160,6 +172,10 @@ const Messages = ({
                     )}
 
                     <div className="bg-default-200  text-sm  py-2 px-3 rounded-2xl  flex-1  ">
+                      <span className="text-orange-300 font-bold">
+                        {user?.Name}
+                      </span>
+                      <br />
                       {chatMessage}
                     </div>
                   </div>
@@ -184,7 +200,7 @@ const Messages = ({
                           Remove
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          onClick={() => handleReply(chatMessage, room)}
+                        // onClick={() => handleReply(chatMessage, room)}
                         >
                           Reply
                         </DropdownMenuItem>

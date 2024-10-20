@@ -111,7 +111,7 @@ export const formatTime = (time: number | Date | string): string => {
   if (!time) return "";
 
   const date = new Date(time);
-  const formattedTime = date.toLocaleTimeString([], {
+  const formattedTime = date.toLocaleTimeString(["tr-TR"], {
     hour: "2-digit",
     minute: "2-digit",
     hour12: true,
