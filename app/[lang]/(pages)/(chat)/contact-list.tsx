@@ -1,11 +1,9 @@
 "use client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import logo  from "@/public/images/logo/logo-1.png";
 import { Badge } from "@/components/ui/badge";
-import { cn, formatTime } from "@/lib/utils";
+import { cn } from "@/lib/utils";
+import logo from "@/public/images/logo/logo-1.png";
 import { Icon } from "@iconify/react";
-// import { type Contact as ContactType, type Chat as ChatType } from "@/app/api/chat/data";
-import { type Chat as ChatType } from "@/app/api/chat/data";
 import { RoomModel } from "@/models/room";
 
 const ContactList = ({
@@ -34,9 +32,9 @@ const ContactList = ({
         <div className="relative inline-block ">
           <Avatar>
             <AvatarImage src={logo.src} />
-            {/* <AvatarFallback className="uppercase">
-              {fullName.slice(0, 2)}
-            </AvatarFallback> */}
+            <AvatarFallback className="uppercase">
+              {LastMessage.Content.slice(0, 2)}
+            </AvatarFallback>
           </Avatar>
           <Badge
             className=" h-2 w-2  p-0 ring-1 ring-border ring-offset-[1px]   items-center justify-center absolute
@@ -67,20 +65,20 @@ const ContactList = ({
             hour12: false,
           })}
         </span>
-        {/* <span
+        <span
           className={cn(
             "h-[14px] w-[14px] flex items-center justify-center bg-default-400 rounded-full text-primary-foreground text-[10px] font-medium",
             {
-              "bg-primary/70": unreadmessage > 0,
+              "bg-primary/70": LastMessage.ReadStatus > 0,
             }
           )}
         >
-          {unreadmessage === 0 ? (
+          {LastMessage.ReadStatus === 0 ? (
             <Icon icon="uil:check" className="text-sm" />
           ) : (
-            unreadmessage
+            LastMessage.ReadStatus
           )}
-        </span> */}
+        </span>
       </div>
     </div>
   );

@@ -8,7 +8,7 @@ export interface MessageModel {
   RoomID: string;
   RepliedMessage: RepliedMessageModel;
   Attachment: AttachmentModel;
-  ReadStatus: string;
+  ReadStatus: number;
   CreatedAt: Date;
   UpdatedAt: Date;
   DeletedAt: Date;
