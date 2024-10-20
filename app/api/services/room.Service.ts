@@ -3,9 +3,7 @@ import { RoomModel } from "@/models/room";
 
 class RoomService {
   //#region GET ALL
-  async getAll() : Promise<any> {
-    const response = await axios.get(`/room`);
-    console.log(response);
+  async getAll(): Promise<any> {
     return await axios.get(`/room`);
   }
 
