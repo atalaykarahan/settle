@@ -5,7 +5,7 @@ import { UserModel } from "./user";
 export interface MessageModel {
   ID: string;
   Content: string;
-  SenderID: string;
+  Sender: UserModel;
   RoomID: string;
   RepliedMessage: RepliedMessageModel;
   Attachment: AttachmentModel;
@@ -13,5 +13,4 @@ export interface MessageModel {
   CreatedAt: Date;
   UpdatedAt: Date;
   DeletedAt: Date;
-  User: UserModel;
 }

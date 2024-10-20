@@ -30,6 +30,7 @@ import EmptyMessage from "./empty-message";
 import Loader from "./loader";
 import MyProfileHeader from "./my-profile-header";
 import PinnedMessages from "./pin-messages";
+import { UserModel } from "@/models/user";
 const ChatPage = () => {
   const profileData = useCurrentUser();
   const socketUrl = process.env.NEXT_PUBLIC_SOCKET_IO_URL;
@@ -136,10 +137,17 @@ const ChatPage = () => {
     console.log("şu adna bu mesaj gidicek", message);
 
     if (socket && profileData && profileData.id) {
+
+      
+
+      // const user: UserModel = {
+      //   ID: 
+      // }
+
       socket.emit("sendMessage", {
-        room_id: selectedChatId,
-        content: message,
-        sender_id: profileData.id,
+        RoomID: selectedChatId,
+        Content: message,
+        Sender: profileData.id,
       });
     }
 

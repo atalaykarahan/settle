@@ -1,24 +1,23 @@
-import { type ClassValue, clsx } from "clsx"
+import { UserModel } from "@/models/user";
+import CryptoJS from "crypto-js";
+import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+  return twMerge(clsx(inputs));
 }
-
-
-
 
 export const isLocationMatch = (
   targetLocation: any,
   locationName: any
 ): boolean => {
-    if (targetLocation === 'home') {
-        targetLocation = '/en';
-    }
-    return (
-        locationName === targetLocation ||
-        locationName.startsWith(`${targetLocation}/`)
-    );
+  if (targetLocation === "home") {
+    targetLocation = "/en";
+  }
+  return (
+    locationName === targetLocation ||
+    locationName.startsWith(`${targetLocation}/`)
+  );
 };
 
 export const RGBToHex = (r: number, g: number, b: number): string => {
@@ -94,7 +93,6 @@ export function hslToHex(hsl: string): string {
   return hslToRgb(h, s, l);
 }
 
-
 export const hexToRGB = (hex: string, alpha?: number): string => {
   const r = parseInt(hex.slice(1, 3), 16);
   const g = parseInt(hex.slice(3, 5), 16);
@@ -129,11 +127,13 @@ export function isObjectNotEmpty(obj: any): boolean {
 }
 
 export const formatDate = (date: string | number | Date): string => {
-  const options: Intl.DateTimeFormatOptions = { year: "numeric", month: "long", day: "numeric" };
+  const options: Intl.DateTimeFormatOptions = {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  };
   return new Date(date).toLocaleDateString("en-US", options);
 };
-
-
 
 // random word
 export function getWords(inputString: string): string {
@@ -143,7 +143,6 @@ export function getWords(inputString: string): string {
   // Extract the first three characters
   return stringWithoutSpaces.substring(0, 3);
 }
-
 
 // for path name
 export function getDynamicPath(pathname: any): any {
@@ -159,7 +158,6 @@ export function getDynamicPath(pathname: any): any {
 }
 
 // translate
-
 interface Translations {
   [key: string]: string;
 }
@@ -174,3 +172,35 @@ export const translate = (title: string, trans: Translations): string => {
   return title;
 };
 
+export const encryptLocalStorageSet = (key: string, value: string): void => {
+  if (!process.env.NEXT_PUBLIC_LOCAL_STORAGE_KEY) return;
+
+  const encryptedValue = CryptoJS.AES.encrypt(
+    value,
+    process.env.NEXT_PUBLIC_LOCAL_STORAGE_KEY
+  ).toString();
+  localStorage.setItem(key, encryptedValue);
+};
+
+export const decodeLocalStorageGet = (key: string): string => {
+  const item = localStorage.getItem(key);
+  if (!item || !process.env.NEXT_PUBLIC_LOCAL_STORAGE_KEY) return "";
+
+  const decryptedItem = CryptoJS.AES.decrypt(
+    item,
+    process.env.NEXT_PUBLIC_LOCAL_STORAGE_KEY
+  ).toString(CryptoJS.enc.Utf8);
+  return decryptedItem;
+};
+
+export const decodedAccessUser = (): UserModel | undefined => {
+  const accessDecrypted = decodeLocalStorageGet("access_token");
+  if (!accessDecrypted) return undefined;
+  return JSON.parse(atob(accessDecrypted.split(".")[1])).user;
+};
+
+export const decodedRefreshUser = (): UserModel | undefined => {
+  const refreshDecrypted = decodeLocalStorageGet("refresh_token");
+  if (!refreshDecrypted) return undefined;
+  return JSON.parse(atob(refreshDecrypted.split(".")[1])).user;
+};

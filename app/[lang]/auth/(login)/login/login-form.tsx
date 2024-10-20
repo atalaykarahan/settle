@@ -1,35 +1,17 @@
 "use client";
-import React, { useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Loader2 } from "lucide-react";
-import { signIn } from "next-auth/react";
-import toast from "react-hot-toast";
-import { cn } from "@/lib/utils";
-import Link from "next/link";
-import Image from "next/image";
+import { decodedAccessUser, encryptLocalStorageSet } from "@/lib/utils";
 import { Icon } from "@iconify/react";
-import { Checkbox } from "@/components/ui/checkbox";
-import CryptoJS from "crypto-js";
+import Link from "next/link";
+import React, { useEffect } from "react";
+import toast from "react-hot-toast";
 
-// import googleIcon from "@/public/images/auth/google.png";
-// import facebook from "@/public/images/auth/facebook.png";
-// import twitter from "@/public/images/auth/twitter.png";
-// import GithubIcon from "@/public/images/auth/github.png";
-import { SiteLogo } from "@/components/svg";
-import { useMediaQuery } from "@/hooks/use-media-query";
 import { loginAction } from "@/actions/login";
-import { useSearchParams } from "next/navigation";
+import { SiteLogo } from "@/components/svg";
 import { CircularProgress } from "@/components/ui/progress";
+import { useMediaQuery } from "@/hooks/use-media-query";
+import { useSearchParams } from "next/navigation";
 
-// const schema = z.object({
-//   email: z.string().email({ message: "Your email is invalid." }),
-//   password: z.string().min(4),
-// });
 const LogInForm = () => {
   const searchParams = useSearchParams();
   const { access_token, refresh_token } = {
@@ -39,27 +21,6 @@ const LogInForm = () => {
   const [isPending, startTransition] = React.useTransition();
   const [passwordType, setPasswordType] = React.useState<string>("password");
   const isDesktop2xl = useMediaQuery("(max-width: 1530px)");
-
-  // const togglePasswordType = () => {
-  //   if (passwordType === "text") {
-  //     setPasswordType("password");
-  //   } else if (passwordType === "password") {
-  //     setPasswordType("text");
-  //   }
-  // };
-  // const {
-  //   register,
-  //   handleSubmit,
-  //   reset,
-  //   formState: { errors },
-  // } = useForm({
-  //   resolver: zodResolver(schema),
-  //   mode: "all",
-  //   defaultValues: {
-  //     email: "dashtail@codeshaper.net",
-  //     password: "password",
-  //   },
-  // });
   const [isVisible, setIsVisible] = React.useState<boolean>(false);
 
   const toggleVisibility = () => setIsVisible(!isVisible);
@@ -74,32 +35,21 @@ const LogInForm = () => {
       refresh_token &&
       process.env.NEXT_PUBLIC_LOCAL_STORAGE_KEY
     ) {
-      const decodedAccess = JSON.parse(atob(access_token.split(".")[1]));
-
-      const encryptedAccess = CryptoJS.AES.encrypt(
-        access_token,
-        process.env.NEXT_PUBLIC_LOCAL_STORAGE_KEY
-      ).toString();
-      const encryptedRefresh = CryptoJS.AES.encrypt(
-        refresh_token,
-        process.env.NEXT_PUBLIC_LOCAL_STORAGE_KEY
-      ).toString();
-
       // set local storage
-      localStorage.setItem("access_token", encryptedAccess);
-      localStorage.setItem("refresh_token", encryptedRefresh);
+      encryptLocalStorageSet("access_token", access_token);
+      encryptLocalStorageSet("refresh_token", refresh_token);
+      const user = decodedAccessUser();
+      console.log("decoded olarak dönen user; ", user);
 
+      if (!user) return;
       startTransition(async () => {
-        loginAction(
-          decodedAccess.user.ID,
-          decodedAccess.user.Name,
-          decodedAccess.user.Avatar,
-          decodedAccess.user.Role
-        ).then((data): any => {
-          if (data && data.error) {
-            toast.error(data.error);
+        loginAction(user.ID, user.Name, user.Avatar, user.Role).then(
+          (data): any => {
+            if (data && data.error) {
+              toast.error(data.error);
+            }
           }
-        });
+        );
       });
     }
   }, []);
@@ -134,7 +84,12 @@ const LogInForm = () => {
   } else {
     return (
       <div className="w-full py-5 lg:py-10">
-        <CircularProgress className="mx-auto" value="50" color="primary" loading />
+        <CircularProgress
+          className="mx-auto"
+          value="50"
+          color="primary"
+          loading
+        />
       </div>
     );
   }

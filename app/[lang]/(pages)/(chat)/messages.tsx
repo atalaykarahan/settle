@@ -1,22 +1,15 @@
-import React, { useState } from "react";
-import { formatTime } from "@/lib/utils";
-import { Icon } from "@iconify/react";
+import { type Chat as ChatType, type ProfileUser } from "@/app/api/chat/data";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Undo2 } from "lucide-react";
-import {
-  type ProfileUser as ProfileUser,
-  type Chat as ChatType,
-} from "@/app/api/chat/data";
-import Image from "next/image";
-import { RoomModel } from "@/models/room";
+import { formatTime } from "@/lib/utils";
 import { MessageModel } from "@/models/message";
+import { RoomModel } from "@/models/room";
+import { Icon } from "@iconify/react";
+import Image from "next/image";
 const chatAction = [
   {
     label: "Remove",
@@ -55,11 +48,10 @@ const Messages = ({
   pinnedMessages,
 }: MessagesProps) => {
   const {
-    SenderID: senderId,
+    Sender: sender,
     Content: chatMessage,
     UpdatedAt: time,
     RepliedMessage: replayMetadata,
-    User: user,
   } = message;
   // const { avatar } = room;
   // State to manage pin status
@@ -79,7 +71,7 @@ const Messages = ({
   return (
     <>
       <div className="block md:px-6 px-0 ">
-        {senderId === profile.id ? (
+        {sender.ID === profile.id ? (
           <>
             {/* {replayMetadata !== null && (
               <div className="w-max ml-auto -mb-2 mr-10">
@@ -152,7 +144,7 @@ const Messages = ({
             <div className="flex-none self-end -translate-y-5">
               <div className="h-8 w-8 rounded-full">
                 <Image
-                  src={user?.Avatar}
+                  src={sender?.Avatar}
                   width={32}
                   height={32}
                   alt=""
@@ -173,7 +165,7 @@ const Messages = ({
 
                     <div className="bg-default-200  text-sm  py-2 px-3 rounded-2xl  flex-1  ">
                       <span className="text-orange-300 font-bold">
-                        {user?.Name}
+                        {sender?.Name}
                       </span>
                       <br />
                       {chatMessage}
