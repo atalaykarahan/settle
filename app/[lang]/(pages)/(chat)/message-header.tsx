@@ -2,7 +2,6 @@
 import ThemeButton from "@/components/partials/header/theme-button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Tooltip,
   TooltipArrow,
@@ -11,24 +10,60 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useMediaQuery } from "@/hooks/use-media-query";
-import { cn } from "@/lib/utils";
 import logo from "@/public/images/logo/logo-1.png";
-import { Icon } from "@iconify/react";
 import { Menu } from "lucide-react";
 
 const MessageHeader = ({
+  connectionStatus,
   showInfo,
   handleShowInfo,
   profile,
   mblChatHandler,
 }: {
+  connectionStatus: "connected" | "failed" | "error" | "connecting";
   showInfo: boolean;
   handleShowInfo: () => void;
   profile: any;
   mblChatHandler: () => void;
 }) => {
-  let active = true;
   const isLg = useMediaQuery("(max-width: 1024px)");
+
+  const connectionBadge = () => {
+    switch (connectionStatus) {
+      case "connected":
+        return (
+          <Badge
+            className=" h-3 w-3  p-0 ring-1 ring-border ring-offset-[1px]   items-center justify-center absolute left-[calc(100%-12px)] top-[calc(100%-12px)]"
+            color={"success"}
+          ></Badge>
+        );
+        break;
+      case "failed":
+        return (
+          <Badge
+            className=" h-3 w-3  p-0 ring-1 ring-border ring-offset-[1px]   items-center justify-center absolute left-[calc(100%-12px)] top-[calc(100%-12px)]"
+            color={"warning"}
+          ></Badge>
+        );
+        break;
+      case "error":
+        return (
+          <Badge
+            className=" h-3 w-3  p-0 ring-1 ring-border ring-offset-[1px]   items-center justify-center absolute left-[calc(100%-12px)] top-[calc(100%-12px)]"
+            color={"destructive"}
+          ></Badge>
+        );
+        break;
+      default: //connecting
+        return (
+          <Badge
+            className=" h-3 w-3  p-0 ring-1 ring-border ring-offset-[1px]   items-center justify-center absolute left-[calc(100%-12px)] top-[calc(100%-12px)]"
+            color={"secondary"}
+          ></Badge>
+        );
+        break;
+    }
+  };
 
   return (
     <div className="flex  items-center">
@@ -44,18 +79,13 @@ const MessageHeader = ({
             <AvatarImage src={logo.src} alt="" />
             <AvatarFallback>{profile?.fullName?.slice(0, 2)}</AvatarFallback>
           </Avatar>
-          <Badge
-            className=" h-3 w-3  p-0 ring-1 ring-border ring-offset-[1px]   items-center justify-center absolute left-[calc(100%-12px)] top-[calc(100%-12px)]"
-            color={active ? "success" : "secondary"}
-          ></Badge>
+          {connectionBadge()}
         </div>
         <div className="hidden lg:block">
           <div className="text-sm font-medium text-default-900 ">
             <span className="relative">Genel Chat</span>
           </div>
-          <span className="text-xs text-default-500">
-            {active ? "Active Now" : "Offline"}
-          </span>
+          <span className="text-xs text-default-500">{connectionStatus}</span>
         </div>
       </div>
       <div className="flex-none space-x-2 rtl:space-x-reverse">

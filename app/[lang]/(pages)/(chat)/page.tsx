@@ -46,8 +46,9 @@ const ChatPage = () => {
   const [offset, setOffset] = useState<number>(0);
   const [hasMoreMessages, setHasMoreMessages] = useState<boolean>(true);
   const messageEndRef = useRef<HTMLDivElement | null>(null);
-  const [connectionStatus, setConnectionStatus] =
-    useState<string>("Connecting...");
+  const [connectionStatus, setConnectionStatus] = useState<
+    "connected" | "failed" | "error" | "connecting"
+  >("connecting");
 
   const [socket, setSocket] = useState<Socket | null>(null);
   const [selectedChatId, setSelectedChatId] = useState<any | null>(
@@ -240,13 +241,13 @@ const ChatPage = () => {
     });
 
     newSocket.on("connect", () => {
-      setConnectionStatus("Bağlandı");
+      setConnectionStatus("connected");
     });
     newSocket.on("disconnect", () => {
-      setConnectionStatus("Bağlanamadı");
+      setConnectionStatus("failed");
     });
     newSocket.on("connect_error", (error) => {
-      setConnectionStatus(`Bağlantı Hatası: ${error.message}`);
+      setConnectionStatus(`error`);
     });
 
     newSocket.on("message", (newMessage: any) => {
@@ -455,12 +456,12 @@ const ChatPage = () => {
       {/* chat messages start */}
       {selectedChatId ? (
         <div className="flex-1 ">
-          <div>{connectionStatus}</div>
           <div className=" flex space-x-5 h-full rtl:space-x-reverse">
             <div className="flex-1">
               <Card className="h-full flex flex-col ">
                 <CardHeader className="flex-none mb-0">
                   <MessageHeader
+                    connectionStatus={connectionStatus}
                     showInfo={showInfo}
                     handleShowInfo={handleShowInfo}
                     profile={profileData}
