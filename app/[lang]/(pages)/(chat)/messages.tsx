@@ -9,6 +9,7 @@ import { formatTime } from "@/lib/utils";
 import { MessageModel } from "@/models/message";
 import { RoomModel } from "@/models/room";
 import { Icon } from "@iconify/react";
+import { divIcon } from "leaflet";
 import Image from "next/image";
 const chatAction = [
   {
@@ -25,8 +26,8 @@ interface MessagesProps {
   message: MessageModel;
   room: RoomModel;
   profile: ProfileUser;
-  onDelete: (selectedChatId: any, index: number) => void;
-  index: number;
+  onDelete: (selectedChatId: any, index: string) => void;
+  index: string;
   selectedChatId: string;
   handleReply: (data: any, room: RoomModel) => void;
   // replayData: any;
@@ -52,6 +53,7 @@ const Messages = ({
     Content: chatMessage,
     UpdatedAt: time,
     RepliedMessage: replayMetadata,
+    DeletedAt: deletedAt,
   } = message;
   // const { avatar } = room;
   // State to manage pin status
@@ -118,7 +120,13 @@ const Messages = ({
                   </div>
                   <div className="whitespace-pre-wrap break-all">
                     <div className="bg-primary/70 text-primary-foreground  text-sm  py-2 px-3 rounded-2xl  flex-1  ">
-                      {chatMessage}
+                      {deletedAt == null ? (
+                        chatMessage
+                      ) : (
+                        <span className="text-gray-400 font-bold">
+                          This message was deleted
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -168,7 +176,13 @@ const Messages = ({
                         {sender?.Name}
                       </span>
                       <br />
-                      {chatMessage}
+                      {deletedAt == null ? (
+                        chatMessage
+                      ) : (
+                        <span className="text-gray-400 font-bold">
+                          This message was deleted
+                        </span>
+                      )}
                     </div>
                   </div>
                   <div className="opacity-0 invisible group-hover:opacity-100 group-hover:visible ">

@@ -29,6 +29,7 @@ import EmptyMessage from "./empty-message";
 import Loader from "./loader";
 import MyProfileHeader from "./my-profile-header";
 import PinnedMessages from "./pin-messages";
+import { MessageModel } from "@/models/message";
 const ChatPage = () => {
   const limit = 10;
   const previousScrollPosition = useRef<number>(0);
@@ -98,23 +99,32 @@ const ChatPage = () => {
   //   queryKey: ["profile"],
   //   queryFn: () => getProfile(),
   // });
-  const deleteMutation = useMutation({
-    mutationFn: deleteMessage,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["messages"] });
-    },
-  });
+  // const deleteMutation = useMutation({
+  //   mutationFn: deleteMessage,
+  //   onSuccess: () => {
+  //     queryClient.invalidateQueries({ queryKey: ["messages"] });
+  //   },
+  // });
 
-  const onDelete = (selectedChatId: any, index: number) => {
-    const obj = { selectedChatId, index };
-    deleteMutation.mutate(obj);
+  const onDelete = (selectedChatId: string, index: string) => {
+    if (socket) {
+      socket.emit("deleteMessage", {
+        RoomID: selectedChatId,
+        MessageID: index,
+      });
+    }
+
+    // deleteMutation.mutate(obj);
 
     // Remove the deleted message from pinnedMessages if it exists
-    const updatedPinnedMessages = pinnedMessages.filter(
-      (msg) => msg.selectedChatId !== selectedChatId && msg.index !== index
-    );
+    // const updatedPinnedMessages = pinnedMessages.filter(
+    //   (msg) => msg.selectedChatId !== selectedChatId && msg.index !== index
+    // );
 
-    setPinnedMessages(updatedPinnedMessages);
+    // setPinnedMessages(updatedPinnedMessages);
+
+  
+
   };
 
   const openChat = (chatId: any) => {
@@ -188,7 +198,8 @@ const ChatPage = () => {
         setTimeout(() => {
           if (chatHeightRef.current) {
             chatHeightRef.current.scrollTop =
-              chatHeightRef.current.scrollHeight - previousScrollPosition.current;
+              chatHeightRef.current.scrollHeight -
+              previousScrollPosition.current;
           }
         }, 100);
       }
@@ -201,12 +212,12 @@ const ChatPage = () => {
     if (chatContainer) {
       chatContainer.addEventListener("scroll", handleScroll);
     }
-
     return () => {
       if (chatContainer) {
         chatContainer.removeEventListener("scroll", handleScroll);
       }
     };
+
   }, [offset, hasMoreMessages, selectedChatId]);
 
   useEffect(() => {
@@ -227,7 +238,6 @@ const ChatPage = () => {
   }, [pinnedMessages]);
   useEffect(() => {
     if (!selectedChatId) return;
-
     const newSocket = io(socketUrl as string, {
       transports: ["websocket", "polling"],
     });
@@ -270,10 +280,53 @@ const ChatPage = () => {
       );
     });
 
+    newSocket.on("delete_message", (deletedObj: any) => {
+      const {MessageID, RoomID} = deletedObj
+      queryClient.setQueryData(
+        ["message", RoomID],
+        (oldMessages: any) => {
+          // Eğer oldMessages null veya tanımsız ise bir şey yapma
+          if (
+            !oldMessages ||
+            !oldMessages.data ||
+            !Array.isArray(oldMessages.data.data)
+          ) {
+            return oldMessages; // Eğer eski mesajlar yoksa aynı veriyi geri döndür
+          }
+    
+          // Mevcut mesajlardan silinmesi gerekeni ayıklayın
+          const updatedMessages = oldMessages.data.data.map((message: MessageModel) => {
+            if (message.ID === MessageID) {
+              return {
+                ...message,
+                Content: "", // Mesaj içeriğini boş yap
+                Attachment: {},
+                RepliedMessage: {},
+                DeletedAt: new Date().toISOString() // deletedAt alanını şu anki tarih ile güncelle
+              };
+            }
+            return message; // Diğer mesajlar aynı kalsın
+          });
+    
+          // Yeni mesaj listesini döndürün
+          return {
+            ...oldMessages,
+            data: {
+              ...oldMessages.data,
+              data: updatedMessages, // Güncellenmiş mesaj listesini burada set ediyoruz
+            },
+          };
+        }
+      );
+    });
+
     setSocket(newSocket);
     return () => {
-      newSocket.off("receive_message");
+      newSocket.disconnect();
     };
+
+   
+
   }, []);
 
   // handle search bar
@@ -405,14 +458,14 @@ const ChatPage = () => {
                         {messageIsError ? (
                           <EmptyMessage />
                         ) : (
-                          chats?.data?.data?.map((message: any, i: number) => (
+                          chats?.data?.data?.map((message: MessageModel, i: number) => (
                             <Messages
                               key={`message-list-${i}`}
                               message={message}
                               contact={chats?.contact}
                               profile={profileData}
                               onDelete={onDelete}
-                              index={i}
+                              index={message.ID}
                               selectedChatId={selectedChatId}
                               // handleReply={handleReply}
                               // replayData={replayData}
