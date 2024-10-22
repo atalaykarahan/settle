@@ -1,16 +1,21 @@
+"use client";
 import { type Chat as ChatType, type ProfileUser } from "@/app/api/chat/data";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
 import { formatTime } from "@/lib/utils";
 import { MessageModel } from "@/models/message";
 import { RoomModel } from "@/models/room";
 import { Icon } from "@iconify/react";
 import { divIcon } from "leaflet";
 import Image from "next/image";
+import Link from "next/link";
+import { useState } from "react";
 const chatAction = [
   {
     label: "Remove",
@@ -27,6 +32,7 @@ interface MessagesProps {
   room: RoomModel;
   profile: ProfileUser;
   onDelete: (selectedChatId: any, index: string) => void;
+  onEdit: (selectedChatId: any, index: string, content: string) => void;
   index: string;
   selectedChatId: string;
   handleReply: (data: any, room: RoomModel) => void;
@@ -40,6 +46,7 @@ const Messages = ({
   room,
   profile,
   onDelete,
+  onEdit,
   index,
   selectedChatId,
   // handleReply,
@@ -52,9 +59,13 @@ const Messages = ({
     Sender: sender,
     Content: chatMessage,
     UpdatedAt: time,
+    CreatedAt: createdAt,
     RepliedMessage: replayMetadata,
     DeletedAt: deletedAt,
   } = message;
+  const [editMode, setEditMode] = useState(false);
+  const [inputValue, setInputValue] = useState(chatMessage);
+
   // const { avatar } = room;
   // State to manage pin status
   const isMessagePinned = pinnedMessages.some(
@@ -114,13 +125,36 @@ const Messages = ({
                         >
                           Delete
                         </DropdownMenuItem>
-                        <DropdownMenuItem>Forward</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setEditMode(true)}>
+                          Edit
+                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
                   <div className="whitespace-pre-wrap break-all">
                     <div className="bg-primary/70 text-primary-foreground  text-sm  py-2 px-3 rounded-2xl  flex-1  ">
-                      {deletedAt == null ? (
+                      {editMode ? (
+                        <div className="flex items-center space-x-2">
+                          <Input
+                            id="chatMessage"
+                            defaultValue={chatMessage}
+                            onChange={(e) => setInputValue(e.target.value)}
+                          />
+                          <Badge
+                            color={"success"}
+                            className="w-5 h-5 rounded-full"
+                            onClick={() => {
+                              onEdit(selectedChatId, index, inputValue);
+                              setEditMode(false);
+                            }}
+                          />
+                          <Badge
+                            color={"destructive"}
+                            className="w-5 h-5 rounded-full"
+                            onClick={() => setEditMode(false)}
+                          />
+                        </div>
+                      ) : deletedAt == null ? (
                         chatMessage
                       ) : (
                         <span className="text-gray-400 font-bold">
@@ -131,7 +165,7 @@ const Messages = ({
                   </div>
                 </div>
                 <span className="text-xs text-end text-default-500">
-                  {formatTime(time)}
+                  {time !== createdAt && "(edited)"} {formatTime(time)}
                 </span>
               </div>
               <div className="flex-none self-end -translate-y-5">
@@ -225,7 +259,7 @@ const Messages = ({
                   </div>
                 </div>
                 <span className="text-xs   text-default-500">
-                  {formatTime(time)}
+                  {formatTime(time)} {time !== createdAt && "(edited)"}
                 </span>
               </div>
             </div>
