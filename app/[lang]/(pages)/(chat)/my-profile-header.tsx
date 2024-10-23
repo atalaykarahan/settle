@@ -13,7 +13,47 @@ import { InputGroup, InputGroupText } from "@/components/ui/input-group";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { type ProfileUser as ProfileUserType } from "@/app/api/chat/data";
-const MyProfileHeader = ({ profile }: { profile: ProfileUserType }) => {
+const MyProfileHeader = ({
+  profile,
+  connectionStatus,
+}: {
+  profile: ProfileUserType;
+  connectionStatus: "connected" | "failed" | "error" | "connecting";
+}) => {
+
+  const connectionBadge = () => {
+    switch (connectionStatus) {
+      case "connected":
+        return (
+          <span className="relative before:h-1.5 before:w-1.5 before:rounded-full before:bg-success before:absolute before:top-1.5 before:-right-3">
+          {profile?.name}
+        </span>
+        );
+        break;
+      case "failed":
+        return (
+          <span className="relative before:h-1.5 before:w-1.5 before:rounded-full before:bg-orange-400 before:absolute before:top-1.5 before:-right-3">
+          {profile?.name}
+        </span>
+        );
+        break;
+      case "error":
+        return (
+          <span className="relative before:h-1.5 before:w-1.5 before:rounded-full before:bg-rose-700 before:absolute before:top-1.5 before:-right-3">
+          {profile?.name}
+        </span>
+        );
+        break;
+      default: //connecting
+        return (
+          <span className="relative before:h-1.5 before:w-1.5 before:rounded-full before:bg-blue-500 before:absolute before:top-1.5 before:-right-3">
+          {profile?.name}
+        </span>
+        );
+        break;
+    }
+  };
+
   return (
     <>
       <div className="flex  justify-between mb-4">
@@ -24,9 +64,10 @@ const MyProfileHeader = ({ profile }: { profile: ProfileUserType }) => {
           </Avatar>
           <div className="block">
             <div className="text-sm font-medium text-default-900 ">
-              <span className="relative before:h-1.5 before:w-1.5 before:rounded-full before:bg-success before:absolute before:top-1.5 before:-right-3">
+              {connectionBadge()}
+              {/* <span className="relative before:h-1.5 before:w-1.5 before:rounded-full before:bg-success before:absolute before:top-1.5 before:-right-3">
                 {profile?.name}
-              </span>
+              </span> */}
             </div>
             <span className="text-xs text-default-600">{profile?.role}</span>
           </div>

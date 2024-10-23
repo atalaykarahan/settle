@@ -21,7 +21,7 @@ import { messageService } from "@/app/api/services/message.Service";
 import { roomService } from "@/app/api/services/room.Service";
 import { useCurrentUser } from "@/app/hooks/use-current-user";
 import { useMediaQuery } from "@/hooks/use-media-query";
-import { cn, decodedAccessUser } from "@/lib/utils";
+import { cn, decodedAccessUser, decodeLocalStorageGet } from "@/lib/utils";
 import { RoomModel } from "@/models/room";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import SearchMessages from "./contact-info/search-messages";
@@ -31,6 +31,7 @@ import MyProfileHeader from "./my-profile-header";
 import PinnedMessages from "./pin-messages";
 import { MessageModel } from "@/models/message";
 const ChatPage = () => {
+  const accessDecrypted = decodeLocalStorageGet("access_token");
   const limit = 10;
   const previousScrollPosition = useRef<number>(0);
   const profileData = useCurrentUser();
@@ -141,6 +142,7 @@ const ChatPage = () => {
 
     if (socket && profileData && profileData.id) {
       const user = decodedAccessUser();
+      console.log(user);
       if (!user) return;
       socket.emit("sendMessage", {
         RoomID: selectedChatId,
@@ -205,6 +207,7 @@ const ChatPage = () => {
     }
   };
 
+  //#region USE EFFECT
   useEffect(() => {
     const chatContainer = chatHeightRef.current;
 
@@ -236,8 +239,12 @@ const ChatPage = () => {
   }, [pinnedMessages]);
   useEffect(() => {
     if (!selectedChatId) return;
+
     const newSocket = io(socketUrl as string, {
       transports: ["websocket", "polling"],
+      auth: {
+        token: accessDecrypted, // Custom header olarak token ekliyoruz
+      },
     });
 
     newSocket.on("connect", () => {
@@ -358,13 +365,14 @@ const ChatPage = () => {
       newSocket.disconnect();
     };
   }, []);
+  //#endregion
 
+  //#region FUNC
   // handle search bar
   const handleSetIsOpenSearch = () => {
     setIsOpenSearch(!isOpenSearch);
   };
   // handle pin note
-
   const handlePinMessage = (note: any) => {
     const updatedPinnedMessages = [...pinnedMessages];
 
@@ -406,6 +414,7 @@ const ChatPage = () => {
     setIsForward(!isForward);
   };
   const isLg = useMediaQuery("(max-width: 1024px)");
+  //#endregion
   return (
     <div className="flex gap-5 app-height  relative rtl:space-x-reverse">
       {isLg && showContactSidebar && (
@@ -432,7 +441,7 @@ const ChatPage = () => {
       >
         <Card className="h-full pb-0">
           <CardHeader className="border-none pb-0 mb-0">
-            <MyProfileHeader profile={profileData} />
+            <MyProfileHeader connectionStatus={connectionStatus} profile={profileData} />
           </CardHeader>
           <CardContent className="pt-0 px-0   lg:h-[calc(100%-170px)] h-[calc(100%-70px)]   ">
             <ScrollArea className="h-full">

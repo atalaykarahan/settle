@@ -239,21 +239,21 @@ const Messages = ({
                         >
                           Remove
                         </DropdownMenuItem>
-                        <DropdownMenuItem
+                        {/* <DropdownMenuItem
                         // onClick={() => handleReply(chatMessage, room)}
                         >
                           Reply
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
+                        </DropdownMenuItem> */}
+                        {/* <DropdownMenuItem
                           onClick={() => handlePinMessageLocal(chatMessage)}
                         >
                           {isMessagePinned ? "Unpin" : "Pin"}
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
+                        </DropdownMenuItem> */}
+                        {/* <DropdownMenuItem
                           onClick={() => handleForward(chatMessage)}
                         >
                           Forward
-                        </DropdownMenuItem>
+                        </DropdownMenuItem> */}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
