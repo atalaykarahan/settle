@@ -30,8 +30,14 @@ import Loader from "./loader";
 import MyProfileHeader from "./my-profile-header";
 import PinnedMessages from "./pin-messages";
 import { MessageModel } from "@/models/message";
+
+interface SocketResopnseModel {
+  Action: string;
+  Message: MessageModel;
+}
+
 const ChatPage = () => {
-  const accessDecrypted = decodeLocalStorageGet("access_token");
+  // const accessDecrypted = decodeLocalStorageGet("access_token");
   const limit = 10;
   const previousScrollPosition = useRef<number>(0);
   const profileData = useCurrentUser();
@@ -40,7 +46,7 @@ const ChatPage = () => {
   const queryClient = useQueryClient();
   // Memoize getMessages using useCallback
   const getMessagesCallback = useCallback(
-    (chatId: any) => messageService.getByRoomId(chatId, limit, 0),
+    (chatId: string) => messageService.getByRoomId(chatId, limit, 0),
     []
   );
 
@@ -137,20 +143,29 @@ const ChatPage = () => {
   const handleShowInfo = () => {
     setShowInfo(!showInfo);
   };
-  const handleSendMessage = (message: any) => {
-    if (!selectedChatId || !message) return;
+  const handleSendMessage = useCallback(
+    (message: string) => {
+      if (!selectedChatId || !message) return;
 
-    if (socket && profileData && profileData.id) {
-      const user = decodedAccessUser();
-      console.log(user);
-      if (!user) return;
-      socket.emit("sendMessage", {
-        RoomID: selectedChatId,
-        Content: message,
-        Sender: user,
-      });
-    }
-  };
+      if (socket && profileData && profileData.id) {
+        const user = decodedAccessUser();
+        if (!user) return;
+        socket.emit("SendMessage", {
+          RoomID: selectedChatId,
+          Content: message,
+          Sender: user,
+        });
+
+        if (chatHeightRef.current) {
+          chatHeightRef.current.scrollTo({
+            top: chatHeightRef.current.scrollHeight,
+            behavior: "smooth",
+          });
+        }
+      }
+    },
+    [selectedChatId, socket, profileData]
+  );
   const handleScroll = async () => {
     if (
       chatHeightRef.current &&
@@ -208,6 +223,8 @@ const ChatPage = () => {
   };
 
   //#region USE EFFECT
+
+  //#region SCROLL HEIGHT CONF
   useEffect(() => {
     const chatContainer = chatHeightRef.current;
 
@@ -228,23 +245,30 @@ const ChatPage = () => {
         behavior: "smooth",
       });
     }
-  }, [handleSendMessage, rooms]);
-  useEffect(() => {
-    if (chatHeightRef.current) {
-      chatHeightRef.current.scrollTo({
-        top: chatHeightRef.current.scrollHeight,
-        behavior: "smooth",
-      });
-    }
-  }, [pinnedMessages]);
+  }, [rooms]);
+  // useEffect(() => {
+  //   if (chatHeightRef.current) {
+  //     chatHeightRef.current.scrollTo({
+  //       top: chatHeightRef.current.scrollHeight,
+  //       behavior: "smooth",
+  //     });
+  //   }
+  // }, [pinnedMessages]);
+  //#endregion
+
+  //#region SOCKET CONNECTION
   useEffect(() => {
     if (!selectedChatId) return;
 
+    // const newSocket = io(socketUrl as string, {
+    //   transports: ["websocket", "polling"],
+    //   auth: {
+    //     token: accessDecrypted, // Custom header olarak token ekliyoruz
+    //   },
+    // });
+
     const newSocket = io(socketUrl as string, {
       transports: ["websocket", "polling"],
-      auth: {
-        token: accessDecrypted, // Custom header olarak token ekliyoruz
-      },
     });
 
     newSocket.on("connect", () => {
@@ -257,114 +281,121 @@ const ChatPage = () => {
       setConnectionStatus(`error`);
     });
 
-    newSocket.on("message", (newMessage: any) => {
-      queryClient.setQueryData(
-        ["message", selectedChatId],
-        (oldMessages: any) => {
-          // Eğer oldMessages null veya tanımsız ise yeni bir array döndür
-          if (
-            !oldMessages ||
-            !oldMessages.data ||
-            !Array.isArray(oldMessages.data.data)
-          ) {
-            return {
-              data: {
-                data: [newMessage], // Yeni mesajı array içine koy
-              },
-            };
-          }
-          // Yeni mesajı mevcut mesajların sonuna ekle
-          return {
-            ...oldMessages, // Eski mesajları koru
-            data: {
-              ...oldMessages.data,
-              data: [...oldMessages.data.data, newMessage], // Yeni mesajı ekle
-            },
-          };
-        }
-      );
-    });
-
-    newSocket.on("delete_message", (deletedObj: any) => {
-      const { MessageID, RoomID } = deletedObj;
-      queryClient.setQueryData(["message", RoomID], (oldMessages: any) => {
-        // Eğer oldMessages null veya tanımsız ise bir şey yapma
-        if (
-          !oldMessages ||
-          !oldMessages.data ||
-          !Array.isArray(oldMessages.data.data)
-        ) {
-          return oldMessages; // Eğer eski mesajlar yoksa aynı veriyi geri döndür
-        }
-
-        // Mevcut mesajlardan silinmesi gerekeni ayıklayın
-        const updatedMessages = oldMessages.data.data.map(
-          (message: MessageModel) => {
-            if (message.ID === MessageID) {
+    newSocket.on("Message", (socketResult: SocketResopnseModel) => {
+      console.log("amcık alperin responsu;", socketResult);
+      switch (socketResult.Action) {
+        case "NewMessage":
+          queryClient.setQueryData(
+            ["message", selectedChatId],
+            (oldMessages: any) => {
+              // Eğer oldMessages null veya tanımsız ise yeni bir array döndür
+              if (
+                !oldMessages ||
+                !oldMessages.data ||
+                !Array.isArray(oldMessages.data.data)
+              ) {
+                return {
+                  data: {
+                    data: [socketResult.Message], // Yeni mesajı array içine koy
+                  },
+                };
+              }
+              // Yeni mesajı mevcut mesajların sonuna ekle
               return {
-                ...message,
-                Content: "", // Mesaj içeriğini boş yap
-                Attachment: {},
-                RepliedMessage: {},
-                DeletedAt: new Date().toISOString(), // deletedAt alanını şu anki tarih ile güncelle
+                ...oldMessages, // Eski mesajları koru
+                data: {
+                  ...oldMessages.data,
+                  data: [...oldMessages.data.data, socketResult.Message], // Yeni mesajı ekle
+                },
               };
             }
-            return message; // Diğer mesajlar aynı kalsın
-          }
-        );
-
-        // Yeni mesaj listesini döndürün
-        return {
-          ...oldMessages,
-          data: {
-            ...oldMessages.data,
-            data: updatedMessages, // Güncellenmiş mesaj listesini burada set ediyoruz
-          },
-        };
-      });
+          );
+          break;
+      }
     });
 
-    newSocket.on("edit_message", (editedObj: any) => {
-      const { EditedMessage, MessageID, RoomID } = editedObj;
-      queryClient.setQueryData(["message", RoomID], (oldMessages: any) => {
-        if (
-          !oldMessages ||
-          !oldMessages.data ||
-          !Array.isArray(oldMessages.data.data)
-        ) {
-          return oldMessages; // Eğer eski mesajlar yoksa aynı veriyi geri döndür
-        }
+    // newSocket.on("delete_message", (deletedObj: any) => {
+    //   const { MessageID, RoomID } = deletedObj;
+    //   queryClient.setQueryData(["message", RoomID], (oldMessages: any) => {
+    //     // Eğer oldMessages null veya tanımsız ise bir şey yapma
+    //     if (
+    //       !oldMessages ||
+    //       !oldMessages.data ||
+    //       !Array.isArray(oldMessages.data.data)
+    //     ) {
+    //       return oldMessages; // Eğer eski mesajlar yoksa aynı veriyi geri döndür
+    //     }
 
-        // Mevcut mesajlardan silinmesi gerekeni ayıklayın
-        const updatedMessages = oldMessages.data.data.map(
-          (message: MessageModel) => {
-            if (message.ID === MessageID) {
-              return {
-                ...message,
-                Content: EditedMessage, // Mesaj içeriğini boş yap
-                UpdatedAt: new Date().toISOString(),
-              };
-            }
-            return message; // Diğer mesajlar aynı kalsın
-          }
-        );
+    //     // Mevcut mesajlardan silinmesi gerekeni ayıklayın
+    //     const updatedMessages = oldMessages.data.data.map(
+    //       (message: MessageModel) => {
+    //         if (message.ID === MessageID) {
+    //           return {
+    //             ...message,
+    //             Content: "", // Mesaj içeriğini boş yap
+    //             Attachment: {},
+    //             RepliedMessage: {},
+    //             DeletedAt: new Date().toISOString(), // deletedAt alanını şu anki tarih ile güncelle
+    //           };
+    //         }
+    //         return message; // Diğer mesajlar aynı kalsın
+    //       }
+    //     );
 
-        // Yeni mesaj listesini döndürün
-        return {
-          ...oldMessages,
-          data: {
-            ...oldMessages.data,
-            data: updatedMessages, // Güncellenmiş mesaj listesini burada set ediyoruz
-          },
-        };
-      });
-    });
+    //     // Yeni mesaj listesini döndürün
+    //     return {
+    //       ...oldMessages,
+    //       data: {
+    //         ...oldMessages.data,
+    //         data: updatedMessages, // Güncellenmiş mesaj listesini burada set ediyoruz
+    //       },
+    //     };
+    //   });
+    // });
+
+    // newSocket.on("edit_message", (editedObj: any) => {
+    //   const { EditedMessage, MessageID, RoomID } = editedObj;
+    //   queryClient.setQueryData(["message", RoomID], (oldMessages: any) => {
+    //     if (
+    //       !oldMessages ||
+    //       !oldMessages.data ||
+    //       !Array.isArray(oldMessages.data.data)
+    //     ) {
+    //       return oldMessages; // Eğer eski mesajlar yoksa aynı veriyi geri döndür
+    //     }
+
+    //     // Mevcut mesajlardan silinmesi gerekeni ayıklayın
+    //     const updatedMessages = oldMessages.data.data.map(
+    //       (message: MessageModel) => {
+    //         if (message.ID === MessageID) {
+    //           return {
+    //             ...message,
+    //             Content: EditedMessage, // Mesaj içeriğini boş yap
+    //             UpdatedAt: new Date().toISOString(),
+    //           };
+    //         }
+    //         return message; // Diğer mesajlar aynı kalsın
+    //       }
+    //     );
+
+    //     // Yeni mesaj listesini döndürün
+    //     return {
+    //       ...oldMessages,
+    //       data: {
+    //         ...oldMessages.data,
+    //         data: updatedMessages, // Güncellenmiş mesaj listesini burada set ediyoruz
+    //       },
+    //     };
+    //   });
+    // });
 
     setSocket(newSocket);
     return () => {
       newSocket.disconnect();
     };
   }, []);
+  //#endregion
+
   //#endregion
 
   //#region FUNC
@@ -441,7 +472,10 @@ const ChatPage = () => {
       >
         <Card className="h-full pb-0">
           <CardHeader className="border-none pb-0 mb-0">
-            <MyProfileHeader connectionStatus={connectionStatus} profile={profileData} />
+            <MyProfileHeader
+              connectionStatus={connectionStatus}
+              profile={profileData}
+            />
           </CardHeader>
           <CardContent className="pt-0 px-0   lg:h-[calc(100%-170px)] h-[calc(100%-70px)]   ">
             <ScrollArea className="h-full">

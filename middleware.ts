@@ -3,8 +3,6 @@ import {apiAuthPrefix, authRoutes, publicRoutes} from "@/config/routes";
 import {auth} from "@/lib/auth";
 
 let locales = ["en"];
-
-
 export default auth((req): any => {
     const {nextUrl} = req;
     const isLoggedIn = !!req.auth;

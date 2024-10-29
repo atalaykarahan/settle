@@ -26,7 +26,7 @@ const LogInForm = () => {
   const toggleVisibility = () => setIsVisible(!isVisible);
 
   const onClickHandle = (data: any) => {
-    window.location.href = "http://100.86.3.124:4725/api/v1/auth/login/steam";
+    window.location.href = `${process.env.NEXT_PUBLIC_API_VERSION_URL}/auth/login/steam`;
   };
 
   useEffect(() => {
@@ -39,7 +39,6 @@ const LogInForm = () => {
       encryptLocalStorageSet("access_token", access_token);
       encryptLocalStorageSet("refresh_token", refresh_token);
       const user = decodedAccessUser();
-      console.log("decoded olarak dönen user; ", user);
 
       if (!user) return;
       startTransition(async () => {
